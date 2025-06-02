@@ -1,0 +1,11 @@
+{
+  "name": "messenger-flow",
+  "version": "1.0.0",
+  "description": "Simple Facebook Messenger API wrapper and conversation manager for Node.js Messenger bots.",
+  "main": "index.js",
+  "author": "sheikhelmoctar",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0"
+  }
+}
