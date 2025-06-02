@@ -2,6 +2,7 @@
 // Simple Facebook Messenger API wrapper and conversation manager
 
 const axios = require('axios');
+const express = require('express');
 
 class MessengerClient {
   constructor(pageAccessToken) {
@@ -43,4 +44,45 @@ class ConversationManager {
   }
 }
 
-module.exports = { MessengerClient, ConversationManager };
+/**
+ * Creates an Express webhook handler for Messenger verification and message receiving.
+ * @param {string} verifyToken - The token you set in Facebook App dashboard for webhook verification.
+ * @param {function} onMessage - Callback to handle incoming messages/events. Receives (event, req, res).
+ * @returns {express.Router} Express router to mount at your webhook endpoint.
+ */
+function createWebhookHandler(verifyToken, onMessage) {
+  const router = express.Router();
+
+  // Verification endpoint (GET)
+  router.get('/', (req, res) => {
+    const mode = req.query['hub.mode'];
+    const token = req.query['hub.verify_token'];
+    const challenge = req.query['hub.challenge'];
+    if (mode === 'subscribe' && token === verifyToken) {
+      res.status(200).send(challenge);
+    } else {
+      res.sendStatus(403);
+    }
+  });
+
+  // Message/event endpoint (POST)
+  router.post('/', (req, res) => {
+    const body = req.body;
+    if (body.object === 'page') {
+      body.entry.forEach(entry => {
+        if (entry.messaging) {
+          entry.messaging.forEach(event => {
+            if (onMessage) onMessage(event, req, res);
+          });
+        }
+      });
+      res.status(200).send('EVENT_RECEIVED');
+    } else {
+      res.sendStatus(404);
+    }
+  });
+
+  return router;
+}
+
+module.exports = { MessengerClient, ConversationManager, createWebhookHandler };
