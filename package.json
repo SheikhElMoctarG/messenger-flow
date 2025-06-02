@@ -1,7 +1,7 @@
 {
   "name": "messenger-flow",
-  "version": "1.0.0",
-  "description": "Simple Facebook Messenger API wrapper and conversation manager for Node.js Messenger bots.",
+  "version": "1.0.2",
+  "description": "A modern, easy-to-use Facebook Messenger bot framework for Node.js. Features built-in webhook, conversation flows, keyword and event handling, and user profile support.",
   "main": "index.js",
   "author": "Sheikh Elmoctar",
   "keywords": [

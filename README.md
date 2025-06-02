@@ -1,6 +1,6 @@
 # MessengerFlow
 
-A simple, extensible Facebook Messenger API wrapper and conversation manager for Node.js Messenger bots, inspired by BootBot.
+A modern, easy-to-use Facebook Messenger bot framework for Node.js. Features built-in webhook, conversation flows, keyword and event handling, and user profile support.
 
 ## Features
 - Easy webhook setup for Messenger verification and message handling
