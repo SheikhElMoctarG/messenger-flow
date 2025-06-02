@@ -66,17 +66,27 @@ function createWebhookHandler(verifyToken, onMessage) {
   });
 
   // Message/event endpoint (POST)
-  router.post('/', (req, res) => {
+  router.post('/', async (req, res) => {
     const body = req.body;
     if (body.object === 'page') {
-      body.entry.forEach(entry => {
-        if (entry.messaging) {
-          entry.messaging.forEach(event => {
-            if (onMessage) onMessage(event, req, res);
-          });
+      try {
+        for (const entry of body.entry) {
+          if (entry.messaging) {
+            for (const event of entry.messaging) {
+              // onMessage should NOT send a response; handle errors gracefully
+              try {
+                if (onMessage) await onMessage(event, req);
+              } catch (err) {
+                console.error('Error in onMessage callback:', err);
+              }
+            }
+          }
         }
-      });
-      res.status(200).send('EVENT_RECEIVED');
+        res.status(200).send('EVENT_RECEIVED');
+      } catch (err) {
+        console.error('Webhook handler error:', err);
+        res.sendStatus(500);
+      }
     } else {
       res.sendStatus(404);
     }
