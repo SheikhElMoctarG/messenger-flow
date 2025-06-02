@@ -1,89 +1,143 @@
-# messenger-flow
+# MessengerFlow
 
-Simple Facebook Messenger API wrapper and conversation manager for Node.js Messenger bots.
+A simple, extensible Facebook Messenger API wrapper and conversation manager for Node.js Messenger bots, inspired by BootBot.
 
 ## Features
-- Send messages to Facebook Messenger users
-- Manage user conversation state
-- Easily set up a Messenger webhook for receiving and responding to messages/events
+- Easy webhook setup for Messenger verification and message handling
+- Send messages, quick replies, and manage user conversations
+- Keyword/regex-based message handling with `.hear`
+- Event-based handling with `.on` (e.g., message, postback)
+- Built-in conversation flow management (ask, say, context, end)
+- User profile fetching
+- Robust error handling
 
 ## Installation
 
-Install via npm (after publishing to npm):
+Install from your local path (or from npm if published):
 
 ```sh
 npm install messenger-flow
 ```
 
-Or use a local path:
-
-```sh
-npm install /path/to/messenger-flow
-```
-
 ## Usage
 
-### 1. Sending Messages
+### 1. Basic Setup
 
 ```js
-const { MessengerClient } = require('messenger-flow');
+const MessengerFlow = require('messenger-flow');
 
-const client = new MessengerClient('YOUR_PAGE_ACCESS_TOKEN');
+const bot = new MessengerFlow({
+  accessToken: 'YOUR_PAGE_ACCESS_TOKEN',
+  verifyToken: 'YOUR_VERIFY_TOKEN',
+  appSecret: 'YOUR_APP_SECRET', // optional, for advanced use
+  webhook: '/webhook' // optional, default is '/webhook'
+});
 
-client.sendMessage('RECIPIENT_ID', 'Hello from messenger-flow!')
-  .then(response => console.log('Message sent:', response))
-  .catch(err => console.error('Error:', err));
+bot.start(3000); // Start server on port 3000
 ```
 
-### 2. Managing Conversation State
+### 2. Handling Messages and Events
+
+#### Keyword/Regex Handling
+```js
+bot.hear(['hi', 'hello', /hey/i], (event, chat) => {
+  chat.say('Hello! How can I help you?');
+});
+```
+
+#### Event Handling
+```js
+bot.on('message', (event, chat, { captured }) => {
+  if (!captured) chat.say('I did not understand that.');
+});
+bot.on('postback', (event, chat) => {
+  chat.say('You clicked a button!');
+});
+```
+
+### 3. Conversations
 
 ```js
-const { ConversationManager } = require('messenger-flow');
-
-const convManager = new ConversationManager();
-
-// Set user state
-convManager.setUserState('USER_ID', { step: 1 });
-
-// Get user state
-const state = convManager.getUserState('USER_ID');
-
-// Reset user state
-convManager.resetUserState('USER_ID');
+bot.hear('survey', (event, chat) => {
+  chat.conversation(convo => {
+    convo.ask('What is your name?', async (event, convo) => {
+      convo.set('name', event.message.text);
+      await convo.say(`Nice to meet you, ${convo.get('name')}!`);
+      convo.ask('How old are you?', async (event, convo) => {
+        convo.set('age', event.message.text);
+        await convo.say(`You are ${convo.get('age')} years old.`);
+        convo.end();
+      });
+    });
+  });
+});
 ```
 
-### 3. Setting Up a Messenger Webhook
+### 4. Sending Messages and Quick Replies
 
 ```js
-const express = require('express');
-const bodyParser = require('body-parser');
-const { MessengerClient, ConversationManager, createWebhookHandler } = require('messenger-flow');
-
-const app = express();
-app.use(bodyParser.json());
-
-const VERIFY_TOKEN = 'your_verify_token';
-const PAGE_ACCESS_TOKEN = 'your_page_access_token';
-
-const client = new MessengerClient(PAGE_ACCESS_TOKEN);
-const convManager = new ConversationManager();
-
-function handleMessage(event, req, res) {
-  // Example: Echo received text
-  const senderId = event.sender.id;
-  if (event.message && event.message.text) {
-    client.sendMessage(senderId, 'You said: ' + event.message.text);
-  }
-}
-
-// Mount webhook at /webhook
-app.use('/webhook', createWebhookHandler(VERIFY_TOKEN, handleMessage));
-
-app.listen(3000, () => console.log('Server is running on port 3000'));
+bot.say(USER_ID, 'Hello!');
+bot.say(USER_ID, {
+  text: 'Choose an option:',
+  quick_replies: [
+    { content_type: 'text', title: 'Option 1', payload: 'OPTION_1' },
+    { content_type: 'text', title: 'Option 2', payload: 'OPTION_2' }
+  ]
+});
+// Or with options:
+bot.say(USER_ID, 'Pick one:', {
+  quickReplies: [
+    { content_type: 'text', title: 'Yes', payload: 'YES' },
+    { content_type: 'text', title: 'No', payload: 'NO' }
+  ]
+});
 ```
 
-- Facebook will call your webhook for verification (GET) and for incoming messages/events (POST).
-- The `handleMessage` callback receives each event, so you can process and respond as needed.
+### 5. Fetching User Profile
+
+```js
+bot.getUserProfile(USER_ID).then(profile => {
+  console.log(profile);
+});
+```
+
+## API Reference
+
+### MessengerFlow(options)
+- `accessToken` (string, required): Facebook Page Access Token
+- `verifyToken` (string, required): Token for webhook verification
+- `appSecret` (string, optional): Facebook App Secret
+- `webhook` (string, optional): Webhook endpoint path (default: `/webhook`)
+
+### Methods
+- `start(port)`: Start the Express server
+- `hear(keywords, callback)`: Listen for keywords/regex in messages
+- `on(event, callback)`: Listen for Messenger events (e.g., 'message', 'postback')
+- `say(userId, message, opts)`: Send a message to a user
+- `getUserProfile(userId)`: Fetch user profile info
+- `conversation(userId, factory)`: Start a conversation with a user
+
+### Conversation API
+- `ask(question, answer)`: Ask a question and handle the answer
+- `say(message)`: Send a message in the conversation
+- `set(key, value)`: Store data in conversation context
+- `get(key)`: Retrieve data from context
+- `end()`: End the conversation
+
+## Example: Full Bot
+
+```js
+const MessengerFlow = require('messenger-flow');
+const bot = new MessengerFlow({
+  accessToken: 'PAGE_TOKEN',
+  verifyToken: 'VERIFY_TOKEN',
+});
+bot.hear('hi', (event, chat) => chat.say('Hello!'));
+bot.on('message', (event, chat, { captured }) => {
+  if (!captured) chat.say('Type "hi" to start!');
+});
+bot.start(3000);
+```
 
 ## License
 
