@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="logo.png" alt="MessengerFlow Logo" width="1200"  />
+</p>
+
 # MessengerFlow
 
 A modern, easy-to-use Facebook Messenger bot framework for Node.js. Features built-in webhook, conversation flows, keyword and event handling, and user profile support.
