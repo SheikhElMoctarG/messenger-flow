@@ -1,6 +1,11 @@
-// messenger-flow/index.js
-// Simple Facebook Messenger API wrapper and conversation manager
-
+/**
+ * @fileoverview
+ * Simple Facebook Messenger API wrapper and conversation manager.
+ * Provides an easy way to handle Messenger webhooks, send messages, manage conversations, and respond to events.
+ * 
+ * @author Sheikh El-Moctar
+ * @date 1 jun 2025
+ */
 const axios = require('axios');
 const express = require('express');
 
@@ -119,7 +124,7 @@ class MessengerFlow {
         request_body
       );
     } catch (err) {
-      console.error('MessengerFlow.send error:', err.response ? err.response.data : err.message);
+      // console.error('MessengerFlow.send error:', err.response ? err.response.data : err.message);
       // Do not throw, just log so server doesn't crash
     }
   }
