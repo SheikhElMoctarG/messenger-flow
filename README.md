@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo.png" alt="MessengerFlow Logo" width="1200"  />
+  <img src="https://raw.githubusercontent.com/SheikhElMoctarG/messenger-flow/refs/heads/main/logo.png" alt="MessengerFlow Logo" width="1200"  />
 </p>
 
 # MessengerFlow
